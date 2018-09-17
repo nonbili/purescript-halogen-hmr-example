@@ -54,8 +54,8 @@ function getCallerFile() {
 }
 
 export const mkComponent = (config, cacheId) => {
-  config.initialState = () => {
-    return getState(cacheId) || config.initialState_();
+  config.initialState = (...rest) => {
+    return getState(cacheId) || config.initialState_(...rest);
   };
 
   config.render = state => {

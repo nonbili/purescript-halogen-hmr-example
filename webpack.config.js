@@ -2,6 +2,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   context: __dirname,
+  devtool: "eval",
   entry: "./src/index.js",
   output: {
     path: __dirname + "/docs",
