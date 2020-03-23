@@ -1,32 +1,33 @@
-module Example.Input where
+module App where
 
 import Prelude
 
+import Data.Const (Const)
 import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 
-data Query a = InputName String a
+type Query = Const Void
+
+data Action = InputName String
 
 type State = { name :: String }
 
-component :: forall m. H.Component HH.HTML Query Unit Void m
-component = H.component
+app :: forall m. H.Component HH.HTML Query Unit Void m
+app = H.mkComponent
   { initialState: const initialState
   , render
-  , eval
-  , receiver: const Nothing
-  , initializer: Nothing
-  , finalizer: Nothing
+  , eval: H.mkEval $ H.defaultEval
+      { handleAction = handleAction }
   }
   where
 
   initialState :: State
   initialState = { name: "" }
 
-  render :: State -> H.ComponentHTML Query () m
+  render :: State -> H.ComponentHTML Action () m
   render state =
     HH.div_
     [ HH.h3_
@@ -34,12 +35,13 @@ component = H.component
     , HH.input
       [ HP.attr (HH.AttrName "style") "border-color: blue;"
       , HP.value state.name
-      , HE.onValueInput (HE.input InputName)
+      , HE.onValueInput $ Just <<< InputName
       ]
     , HH.p_
       [ HH.text $ "Hello, " <> state.name ]
     ]
 
-  eval :: Query ~> H.HalogenM State Query () Void m
-  eval (InputName name next) = next <$ do
-    H.modify _{ name = name }
+  handleAction :: Action -> H.HalogenM State Action () Void m Unit
+  handleAction = case _ of
+    InputName name -> do
+      H.modify_ $ _ { name = name }

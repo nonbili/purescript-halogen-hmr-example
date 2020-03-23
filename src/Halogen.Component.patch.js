@@ -53,62 +53,19 @@ function getCallerFile() {
   }
 }
 
-export const mkComponent = (config, cacheId) => {
+export const mkComponent = config => {
+  const cacheId = getCallerFile();
+
+  const initialState_ = config.initialState;
+  const render_ = config.render;
+
   config.initialState = (...rest) => {
-    return getState(cacheId) || config.initialState_(...rest);
+    return getState(cacheId) || initialState_(...rest);
   };
 
   config.render = state => {
     setState(cacheId, state);
-    return config.render_(state);
+    return render_(state);
   };
   return Component.mkComponent(config);
 };
-
-export function component(args) {
-  // Taken from output/Halogen.Component/index.js
-  const go = function(spec) {
-    return {
-      initialState_: spec.initialState,
-      render_: spec.render,
-      eval: function(v) {
-        if (v instanceof Halogen_Query_HalogenQ.Initialize) {
-          return Data_Functor.voidLeft(Halogen_Query_HalogenM.functorHalogenM)(
-            Data_Foldable.traverse_(Halogen_Query_HalogenM.applicativeHalogenM)(
-              Data_Foldable.foldableMaybe
-            )(spec["eval"])(spec.initializer)
-          )(v.value0);
-        }
-        if (v instanceof Halogen_Query_HalogenQ.Finalize) {
-          return Data_Functor.voidLeft(Halogen_Query_HalogenM.functorHalogenM)(
-            Data_Foldable.traverse_(Halogen_Query_HalogenM.applicativeHalogenM)(
-              Data_Foldable.foldableMaybe
-            )(spec["eval"])(spec.finalizer)
-          )(v.value0);
-        }
-        if (v instanceof Halogen_Query_HalogenQ.Receive) {
-          return Data_Functor.voidLeft(Halogen_Query_HalogenM.functorHalogenM)(
-            Data_Foldable.traverse_(Halogen_Query_HalogenM.applicativeHalogenM)(
-              Data_Foldable.foldableMaybe
-            )(spec["eval"])(spec.receiver(v.value0))
-          )(v.value1);
-        }
-        if (v instanceof Halogen_Query_HalogenQ.Handle) {
-          return Data_Functor.voidLeft(Halogen_Query_HalogenM.functorHalogenM)(
-            spec["eval"](v.value0)
-          )(v.value1);
-        }
-        if (v instanceof Halogen_Query_HalogenQ.Request) {
-          return spec["eval"](v.value0);
-        }
-        throw new Error(
-          "Failed pattern match at Halogen.Component line 102, column 15 - line 107, column 37: " +
-            [v.constructor.name]
-        );
-      }
-    };
-  };
-
-  const cacheId = getCallerFile();
-  return mkComponent(go(args), cacheId);
-}

@@ -3,4 +3,5 @@ node_modules
 
 .psci_modules
 .psc-ide-port
+.spago
 output
