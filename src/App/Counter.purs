@@ -4,6 +4,8 @@ import Prelude
 
 import Data.Const (Const)
 import Data.Maybe (Maybe(..))
+import Effect.Class (class MonadEffect)
+import Effect.Console as Console
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -15,15 +17,18 @@ type Message = Void
 data Action
   = Increase
   | Decrease
+  | Finalize
 
 type State = { value :: Int }
 
-component :: forall m. H.Component HH.HTML Query Unit Void m
+component :: forall m. MonadEffect m => H.Component HH.HTML Query Unit Void m
 component = H.mkComponent
   { initialState: const initialState
   , render
   , eval: H.mkEval $ H.defaultEval
-    { handleAction = handleAction }
+    { handleAction = handleAction
+    , finalize = Just Finalize
+    }
   }
   where
 
@@ -51,9 +56,13 @@ component = H.mkComponent
 
 handleAction
   :: forall m
-   . Action
+   . MonadEffect m
+  => Action
   -> H.HalogenM State Action () Void m Unit
-handleAction Increase = do
+handleAction = case _ of
+  Increase ->
     H.modify_ (\state -> state { value = state.value + 1 })
-handleAction Decrease = do
+  Decrease ->
     H.modify_ (\state -> state { value = state.value - 1 })
+  Finalize -> do
+    H.liftEffect $ Console.log "finalize"

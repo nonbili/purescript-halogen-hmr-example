@@ -6,6 +6,7 @@ import App.Counter as Counter
 import Data.Const (Const)
 import Data.Maybe (Maybe(..))
 import Data.Symbol (SProxy(..))
+import Effect.Class (class MonadEffect)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -23,7 +24,7 @@ type Slot =
 
 _counter = SProxy :: SProxy "counter"
 
-app :: forall m. H.Component HH.HTML Query Unit Void m
+app :: forall m. MonadEffect m => H.Component HH.HTML Query Unit Void m
 app = H.mkComponent
   { initialState: const initialState
   , render
