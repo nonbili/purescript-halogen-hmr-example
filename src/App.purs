@@ -2,8 +2,10 @@ module App where
 
 import Prelude
 
+import App.Counter as Counter
 import Data.Const (Const)
 import Data.Maybe (Maybe(..))
+import Data.Symbol (SProxy(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -14,6 +16,12 @@ type Query = Const Void
 data Action = InputName String
 
 type State = { name :: String }
+
+type Slot =
+  ( counter :: H.Slot Counter.Query Counter.Message Unit
+  )
+
+_counter = SProxy :: SProxy "counter"
 
 app :: forall m. H.Component HH.HTML Query Unit Void m
 app = H.mkComponent
@@ -27,7 +35,7 @@ app = H.mkComponent
   initialState :: State
   initialState = { name: "" }
 
-  render :: State -> H.ComponentHTML Action () m
+  render :: State -> H.ComponentHTML Action Slot m
   render state =
     HH.div_
     [ HH.h3_
@@ -39,9 +47,12 @@ app = H.mkComponent
       ]
     , HH.p_
       [ HH.text $ "Hello, " <> state.name ]
+    , HH.h3_
+      [ HH.text "App.Counter"]
+    , HH.slot _counter unit Counter.component unit $ const Nothing
     ]
 
-  handleAction :: Action -> H.HalogenM State Action () Void m Unit
+  handleAction :: Action -> H.HalogenM State Action Slot Void m Unit
   handleAction = case _ of
     InputName name -> do
       H.modify_ $ _ { name = name }
